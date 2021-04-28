@@ -10,7 +10,6 @@ WORKDIR?=$(CURDIR)/work
 TOOLSDIR=$(BUILDDIR)/bin
 
 UNAME:=$(shell uname)
-UNAMEM:=$(shell uname)-$(shell uname -m)
 
 TOOLS=$(TOOLSDIR)/bin2c
 TOOLS+=$(TOOLSDIR)/sjasm
@@ -19,7 +18,7 @@ TOOLS+=$(TOOLSDIR)/zasm
 #TOOLS+=$(TOOLSDIR)/vgm_cmp
 endif
 TOOLS+=$(TOOLSDIR)/sixpack 
-TOOLS+=$(TOOLSDIR)/appack
+#TOOLS+=$(TOOLSDIR)/appack
 
 tools_build: $(WORKDIR) $(TOOLSDIR) $(TOOLS)
 	-cp extras/scripts/*.* $(TOOLSDIR)/.
@@ -33,7 +32,6 @@ tools_clean:
 	-rm $(TOOLSDIR)/hexbin
 	-rm $(TOOLSDIR)/sixpack
 	-rm $(TOOLSDIR)/vgmtools
-	-rm $(TOOLSDIR)/appack
 
 $(WORKDIR):
 	mkdir -p work
@@ -138,15 +136,3 @@ $(TOOLSDIR)/vgm_cmp: $(VGMTOOL_PKG)
 	gcc chip_cmp.o vgm_cmp.c -lz -o vgm_cmp && \
 	cp vgm_cmp $@
 
-$(TOOLSDIR)/appack: 
-	- mkdir -p $(WORKDIR)/applib 
-	cp -r files/applib/* $(WORKDIR)/applib/. 
-ifeq ($(UNAME), Linux)
-	cd $(WORKDIR)/applib/example && \
-	$(MAKE) -f makefile.elf && \
-	cp appack $@
-else ifeq ($(UNAMEM), Darwin-arm64)
-	echo "cd $(WORKDIR)/applib/example && \
-	$(MAKE) -f makefile.darwin && \
-	cp appack $@" | arch -x86_64 zsh
-endif

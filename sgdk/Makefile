@@ -4,7 +4,7 @@ GENGCC_BIN=$(GENDEV)/bin
 SGDKDIR=$(CURDIR)/SGDK
 SAMPLESDIR=$(SGDKDIR)/sample
 
-SGDKVER=v1.51
+SGDKVER=v1.62
 SGDKINSTALLDIR=$(GENDEV)/sgdk$(SGDKVER)
 
 all: tools $(SGDKDIR) $(SGDKDIR)/libmd.a
@@ -24,11 +24,12 @@ patch: $(SGDKDIR)
 prep: $(SGDKDIR)
 	cd $(SGDKDIR) && patch -u -p1 -l < ../files/sgdk_$(SGDKVER).diff
 
+SGDK: $(SGDKDIR)
 $(SGDKDIR):
 	git clone -b '$(SGDKVER)' --single-branch --depth 1 https://github.com/Stephane-D/SGDK.git
 
 $(SGDKDIR)/libmd.a: prep
-	cp -rf ../tools/files/applib/lib $(SGDKDIR)/tools/appack
+	#cp -rf ../tools/files/applib/lib $(SGDKDIR)/tools/appack
 	cd $(SGDKDIR) && ln -sf ../files/Makefile.sgdk_lib .
 	cd $(SGDKDIR) && $(MAKE) -f Makefile.sgdk_lib
 

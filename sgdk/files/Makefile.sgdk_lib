@@ -11,7 +11,7 @@ RM = rm -f
 ASMZ80 = $(GENBIN)/sjasm
 BINTOS = $(GENBIN)/bintos
 RESCOMP= java -jar ./bin/rescomp.jar
-EXT=darwin
+
 OPTION= -Dnologo_
 
 CS=$(wildcard src/*.c)
@@ -30,13 +30,12 @@ INCS = -Iinc -Ires
 FLAGS = $(OPTION) -m68000 -Wall -O1 -c -fomit-frame-pointer $(INCS)
 FLAGSZ80 = -isrc -iinc
 
-all: appack $(libmd.a_OBJS) libmd.a
+all: $(libmd.a_OBJS) libmd.a
 
 appack:
 	echo -n "osBits="> tools/appack/makefile.vars
 	getconf LONG_BIT >> tools/appack/makefile.vars
-	cp ../../tools/files/applib/example/makefile.darwin2 tools/appack/makefile.darwin
-	cd tools/appack/ && make -f makefile.$(EXT)
+	cd tools/appack/ && make -f makefile.elf
 	cp tools/appack/appack bin/
 
 %.a: $(libmd.a_OBJS)

@@ -1,0 +1,244 @@
+diff --git a/inc/sprite_eng.h b/inc/sprite_eng.h
+index 90eb8fc..d14a0f7 100644
+--- a/inc/sprite_eng.h
++++ b/inc/sprite_eng.h
+@@ -368,11 +368,11 @@ typedef void FrameChangeCallback(Sprite* sprite);
+ /**
+  * First allocated sprite (NULL if no sprite allocated)
+  */
+-Sprite* firstSprite;
++extern Sprite* firstSprite;
+ /**
+  * Last allocated sprite (NULL if no sprite allocated)
+  */
+-Sprite* lastSprite;
++extern Sprite* lastSprite;
+ 
+ /**
+  * Allocated VRAM (in tile) for Sprite Engine
+diff --git a/makefile.gen b/makefile.gen
+index 709b276..f975364 100644
+--- a/makefile.gen
++++ b/makefile.gen
+@@ -32,6 +32,8 @@ BINTOS := $(BIN)/bintos
+ RESCOMP := $(JAVA) -jar $(BIN)/rescomp.jar
+ MKDIR := $(BIN)/mkdir
+ 
++include $(GENDEV)/sgdk/mkfiles/makefile.vars
++
+ SRC_C = $(wildcard *.c)
+ SRC_C += $(wildcard $(SRC)/*.c)
+ SRC_C += $(wildcard $(SRC)/*/*.c)
+@@ -147,7 +149,7 @@ out/rom.bin: out/rom.out
+ 	$(SIZEBND) out/rom.bin -sizealign 131072
+ 
+ out/symbol.txt: out/rom.out
+-	$(NM) --plugin=liblto_plugin-0.dll -n out/rom.out > out/symbol.txt
++	$(NM) -n out/rom.out > out/symbol.txt
+ 
+ out/rom.out: out/sega.o out/cmd_ $(LIBMD)
+ 	$(CC) -B$(BIN) -n -T $(GDK)/md.ld -nostdlib out/sega.o @out/cmd_ $(LIBMD) $(LIB)/libgcc.a -o out/rom.out -Wl,--gc-sections
+diff --git a/makelib.gen b/makelib.gen
+index 97318ff..9d333a3 100644
+--- a/makelib.gen
++++ b/makelib.gen
+@@ -26,6 +26,8 @@ BINTOS := $(BIN)/bintos
+ RESCOMP := $(JAVA) -jar $(BIN)/rescomp.jar
+ MKDIR := $(BIN)/mkdir
+ 
++include ../files/makefile.vars
++
+ SRC_LIB_C := $(wildcard $(SRC_LIB)/*.c)
+ SRC_LIB_S := $(wildcard $(SRC_LIB)/*.s)
+ SRC_LIB_S80 := $(wildcard $(SRC_LIB)/*.s80)
+@@ -101,11 +103,11 @@ cleanAsm: cleanasm
+ 
+ 
+ $(LIB)/libmd.a: cmd_
+-	$(AR) rs $(LIB)/libmd.a --plugin=liblto_plugin-0.dll @cmd_
++	$(AR) rs $(LIB)/libmd.a @cmd_
+ 	$(RM) cmd_
+ 
+ $(LIB)/libmd_debug.a: cmd_
+-	$(AR) rs $(LIB)/libmd_debug.a --plugin=liblto_plugin-0.dll @cmd_
++	$(AR) rs $(LIB)/libmd_debug.a @cmd_
+ 	$(RM) cmd_
+ 
+ cmd_ : $(OBJ_LIB)
+diff --git a/sample/basics/hello-world/out/rom.bin b/sample/basics/hello-world/out/rom.bin
+old mode 100644
+new mode 100755
+index 0c8e897..fab41ff
+Binary files a/sample/basics/hello-world/out/rom.bin and b/sample/basics/hello-world/out/rom.bin differ
+diff --git a/src/bmp_a.s b/src/bmp_a.s
+index e38b505..cdd6ccf 100644
+--- a/src/bmp_a.s
++++ b/src/bmp_a.s
+@@ -1,5 +1,4 @@
+-
+-#include "asm_mac.i"
++.include "src/asm_mac.i"
+ 
+ func clearBitmapBuffer
+     move.l 4(%sp),%a0           | a0 = buffer
+diff --git a/src/dma_a.s b/src/dma_a.s
+index efb0ac6..035e66f 100644
+--- a/src/dma_a.s
++++ b/src/dma_a.s
+@@ -1,5 +1,5 @@
+ 
+-#include "asm_mac.i"
++.include "src/asm_mac.i"
+ 
+ func flushQueue
+ 	move.w 6(%sp),%d0
+diff --git a/src/kdebug.s b/src/kdebug.s
+index 5bce725..935dc90 100644
+--- a/src/kdebug.s
++++ b/src/kdebug.s
+@@ -14,7 +14,7 @@
+ * others should be preserved and
+ * return value -if there is- is placed in d0
+ 
+-#include "asm_mac.i"
++.include "src/asm_mac.i"
+ 
+ **************
+ * Pause Gens *
+diff --git a/src/maths3D_a.s b/src/maths3D_a.s
+index c5f9287..7d3951a 100644
+--- a/src/maths3D_a.s
++++ b/src/maths3D_a.s
+@@ -1,6 +1,6 @@
+     .extern    viewport
+ 
+-#include "asm_mac.i"
++.include "src/asm_mac.i"
+ 
+ func M3D_transform
+     movm.l %d2-%d5/%a2-%a5,-(%sp)
+diff --git a/src/memory_a.s b/src/memory_a.s
+index 2845e51..ee6715d 100644
+--- a/src/memory_a.s
++++ b/src/memory_a.s
+@@ -1,5 +1,5 @@
+ 
+-#include "asm_mac.i"
++.include "src/asm_mac.i"
+ 
+ func memset_
+     move.w  14(%sp),%d0         | d0 = len
+diff --git a/src/sram_a.s b/src/sram_a.s
+index 1943be3..fa8ad07 100644
+--- a/src/sram_a.s
++++ b/src/sram_a.s
+@@ -1,5 +1,5 @@
+ 
+-#include "asm_mac.i"
++.include "src/asm_mac.i"
+ 
+ | extern u16 SRAM_readWord(u32 offset);
+ func SRAM_readWord
+diff --git a/src/sys_a.s b/src/sys_a.s
+index 6c9d105..4b9d018 100644
+--- a/src/sys_a.s
++++ b/src/sys_a.s
+@@ -1,5 +1,5 @@
+ 
+-#include "asm_mac.i"
++.include "src/asm_mac.i"
+ 
+ func SYS_assertReset
+ 
+diff --git a/src/tools_a.s b/src/tools_a.s
+index d97b86f..62e7b6d 100644
+--- a/src/tools_a.s
++++ b/src/tools_a.s
+@@ -6,7 +6,7 @@
+ # void qsort(void** src, u16 size, _comparatorCallback* cb);
+ # ---------------------------------------------------------------
+ 
+-#include "asm_mac.i"
++.include "src/asm_mac.i"
+ 
+ func qsort
+     movem.l %a2-%a6,-(%sp)
+diff --git a/src/vdp_tile_a.s b/src/vdp_tile_a.s
+index 6794a80..365f486 100644
+--- a/src/vdp_tile_a.s
++++ b/src/vdp_tile_a.s
+@@ -1,5 +1,5 @@
+ 
+-#include "asm_mac.i"
++.include "src/asm_mac.i"
+ 
+ func VDP_loadBMPTileData
+     movm.l #0x3c00,-(%sp)
+diff --git a/src/z80_drv1.h b/src/z80_drv1.h
+index 06adade..a2da7b8 100644
+--- a/src/z80_drv1.h
++++ b/src/z80_drv1.h
+@@ -1,6 +1,6 @@
+-#ifndef _Z80_DRV1_H_
+-#define _Z80_DRV1_H_
+-
+-extern const u8 z80_drv1[0xB2B];
+-
+-#endif // _Z80_DRV1_H_
++#ifndef _Z80_DRV1_H_
++#define _Z80_DRV1_H_
++
++extern const u8 z80_drv1[0xB2B];
++
++#endif // _Z80_DRV1_H_
+diff --git a/src/z80_drv2.h b/src/z80_drv2.h
+index 3598de1..7ef3aba 100644
+--- a/src/z80_drv2.h
++++ b/src/z80_drv2.h
+@@ -1,6 +1,6 @@
+-#ifndef _Z80_DRV2_H_
+-#define _Z80_DRV2_H_
+-
+-extern const u8 z80_drv2[0xE00];
+-
+-#endif // _Z80_DRV2_H_
++#ifndef _Z80_DRV2_H_
++#define _Z80_DRV2_H_
++
++extern const u8 z80_drv2[0xE00];
++
++#endif // _Z80_DRV2_H_
+diff --git a/src/z80_drv3.h b/src/z80_drv3.h
+index 8b35866..94c8000 100644
+--- a/src/z80_drv3.h
++++ b/src/z80_drv3.h
+@@ -1,6 +1,6 @@
+-#ifndef _Z80_DRV3_H_
+-#define _Z80_DRV3_H_
+-
+-extern const u8 z80_drv3[0xA69];
+-
+-#endif // _Z80_DRV3_H_
++#ifndef _Z80_DRV3_H_
++#define _Z80_DRV3_H_
++
++extern const u8 z80_drv3[0xA69];
++
++#endif // _Z80_DRV3_H_
+diff --git a/src/z80_xgm.h b/src/z80_xgm.h
+index 167307c..49364d2 100644
+--- a/src/z80_xgm.h
++++ b/src/z80_xgm.h
+@@ -1,6 +1,6 @@
+-#ifndef _Z80_XGM_H_
+-#define _Z80_XGM_H_
+-
+-extern const u8 z80_xgm[0x1700];
+-
+-#endif // _Z80_XGM_H_
++#ifndef _Z80_XGM_H_
++#define _Z80_XGM_H_
++
++extern const u8 z80_xgm[0x1700];
++
++#endif // _Z80_XGM_H_
